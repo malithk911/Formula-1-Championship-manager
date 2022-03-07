@@ -1,0 +1,473 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+
+@SuppressWarnings("ALL")
+public class Formula1ChampionshipManager implements Serializable, ChampionshipManager {
+    public static String file = "championshipDetails.ser";
+
+    /**
+     *
+     * @param name name of driver
+     * @param location location of driver
+     * @param team team of driver
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    @Override
+    public void add(String name, String location, String team) throws IOException, ClassNotFoundException {
+
+        Formula1Driver newF1Driver = new Formula1Driver(name,location,team);
+
+        boolean exists = false;
+        for(Formula1Driver driver : DRIVER_LIST){
+            if(driver.getTeam().equalsIgnoreCase(newF1Driver.getTeam())){
+                System.out.println("\nError. The team of driver already exists!");
+                return;
+            }
+        }
+
+        if(!exists){
+            DRIVER_LIST.add(newF1Driver);
+            DRIVER_LIST.sort(Collections.reverseOrder());
+            System.out.println("\nDriver added successfully!");
+            System.out.println(DRIVER_LIST);
+        }
+    }
+
+    /**
+     * show all drivers
+     */
+    @Override
+    public void show() {
+        int i = 1;
+        for (Formula1Driver driver : DRIVER_LIST){
+            System.out.println("\nCurrent F1 Drivers : Number " + i + "\nRepresenting F1 Team : " +
+                    driver.getTeam() + "\nF1 Driver Name : " + driver + "\n\n");
+            i++;
+        }
+    }
+
+    /**
+     *
+     * @param name name of driver
+     * @param team team of driver
+     */
+    @Override
+    public void delete(String name, String team) {
+        for (Formula1Driver driver: DRIVER_LIST)  {
+            if (driver.getName().equalsIgnoreCase(name) && driver.getTeam().equalsIgnoreCase(team)) {
+                DRIVER_LIST.remove(driver);
+//                this.save(championshipDetailsFile);
+                System.out.println("\nDriver removed successfully!");
+                break;
+            } else {
+                System.out.println("\nError. Driver doesn't exist.");
+                break;
+            }
+        }
+    }
+
+    /**
+     *
+     * @param name name of driver
+     * @param currentTeam current team of driver
+     * @param newTeam new team of driver
+     */
+    @Override
+    public void changeTeam(String name, String currentTeam, String newTeam) {
+        for (Formula1Driver driver: DRIVER_LIST) {
+            if (driver.getName().equalsIgnoreCase(name) && driver.getTeam().equalsIgnoreCase(currentTeam)) {
+                driver.setTeam(newTeam);
+//              this.save(championshipDetailsFile);
+                System.out.println("\nTeam changed successfully!");
+                break;
+            } else {
+                System.out.println("\nError. Driver doesn't exist.");
+                break;
+            }
+        }
+    }
+
+    /**
+     *
+     * @param name name of driver
+     * @param team team of driver
+     * @return stats of driver
+     */
+    @Override
+    public String displayStats(String name, String team) {
+        int i = 1;
+        for (Formula1Driver driver : DRIVER_LIST) {
+            if (driver.getName().equalsIgnoreCase(name) && driver.getTeam().equalsIgnoreCase(team)) {
+                return "\nDriver Profile =======>        " + driver.getName().toUpperCase() +
+                        "\n—————————————————————————————————————————\n" +
+                        "Present Season Rank          :  " + i + "\n" +
+                        "Representing F1 Team         :  " + driver.getTeam() + "\n" +
+                        "Location of driver           :  " + driver.getLocation() + "\n" +
+                        "Solo career race total       :  " + driver.getTotalRaces() + "\n" +
+                        "1st Podium Placements        :  " + driver.getFirstPlaces() + "\n" +
+                        "2nd Podium Placements        :  " + driver.getSecondPlaces() + "\n" +
+                        "3rd Podium Placements        :  " + driver.getThirdPlaces() + "\n" +
+                        "—————————————————————————————————————————\n" +
+                        "Cumulative season points      :  " + driver.getPoints() + "\n"+
+                        "—————————————————————————————————————————\n";
+            }
+            i++;
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @return table in string format
+     */
+    @Override
+    public String showFormula1Table() {
+
+        if(DRIVER_LIST.isEmpty()){
+            return "\nError. No drivers in the championship.";
+        }
+
+        StringBuilder output = new StringBuilder();
+        System.out.println();
+        System.out.println("\n—————————————————————————————————— CHAMPIONSHIP TABLE ——————————————————————————————————\n");
+//        System.out.println("|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
+//        System.out.println("|\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t Formula 1\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t|\n|\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tChampionship Table\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t|");
+//        System.out.println("|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|");
+        String tableHeader = String.format("%-20s %-20s %-20s %-15s %-15s %-20s %-20s %-20s %-20s %-5s",
+                "|Rank", "|Name", "|Location", "|Team", "|Races", "|1st Places", "|2nd Places", "|3rd Places",
+                "|4th Places", "|Points |\n|--------------------------------------------------------------------------" +
+                        "---------------------------------------------------------------------------------------------" +
+                        "--------------------------------------------|");
+
+        output.append(tableHeader).append("\n");
+
+        DRIVER_LIST.sort(Collections.reverseOrder());
+
+        int i = 1;
+        for (Formula1Driver driver : DRIVER_LIST) {
+            String result = String.format("|%-20s|%-20s|%-20s|%-15s|%-15s|%-20s|%-20s|%-20s|%-20s|%-5s",
+                    i, driver.getName(), driver.getLocation(), driver.getTeam(),
+                    driver.getTotalRaces(), driver.getFirstPlaces(), driver.getSecondPlaces(),
+                    driver.getThirdPlaces(),driver.totalOtherPositions(),driver.getPoints());
+            output.append(result).append("\t\t\t\t\t|\n");
+            i++;
+        }
+
+        output.append("|------------------------------------------------------------------------------------------------" +
+                "-------------------------------------------------------------------------------------------------------" +
+                "------------|\n\n\n");
+
+        return output.toString();
+
+    }
+
+    /**
+     *
+     * @param race race object
+     */
+    @Override
+    public void addRace() {
+        System.out.println("\n Enter date of match (DD.MM.YYYY) : ");
+        Scanner userInput = new Scanner(System.in);
+        Date dateOfRace = new Date(); // create a date object
+        String userInputDate = userInput.next();
+
+        // split date string into day, month and year
+        String [] arr = userInputDate.split("\\.", 3);
+
+        // convert split values to integer
+        if((Integer.parseInt(arr[0]) > 0 && Integer.parseInt(arr[0]) <= 31) &&
+                (Integer.parseInt(arr[1]) > 0 && Integer.parseInt(arr[1]) <= 12) &&
+                (Integer.parseInt(arr[2]) >= 2021)){
+            dateOfRace.setDay(Integer.parseInt(arr[0]));
+            dateOfRace.setMonth(Integer.parseInt(arr[1]));
+            dateOfRace.setYear(Integer.parseInt(arr[2]));
+        } else {
+            System.out.println("\nError. Invalid date. Enter a valid date.");
+            return;
+        }
+
+//        System.out.println("\n Enter number of drivers: \n");
+//        int numOfDrivers = userInput.nextInt();
+
+        List<Formula1Driver> tempList1 = new ArrayList<>();
+        List<Integer> tempList2 = new ArrayList<>();
+
+        while(true){
+            System.out.println("\n Enter 1 to add driver to race.");
+            System.out.println(" Enter 2 to stop.");
+            int num = userInput.nextInt();
+
+            switch (num){
+                case 1:
+                    boolean driverExists = false;
+
+                    System.out.println("\n Name of driver: ");
+                    String tempName = userInput.next();
+
+                    System.out.println("\n Team of driver: ");
+                    String tempTeam = userInput.next();
+
+                    System.out.println("\n Position of driver: ");
+                    int tempPosition = userInput.nextInt();
+
+//                    tempList1.add(raceDriver);
+//                    tempList2.add(tempPosition);
+
+                    for (Formula1Driver raceDriver : DRIVER_LIST){
+                        if (raceDriver.getName().equalsIgnoreCase(tempName) && raceDriver.getTeam().equalsIgnoreCase(tempTeam)){
+                            driverExists = true;
+//                            tempList1.add(raceDriver);
+//                            tempList2.add(tempPosition);
+                            break; //////////// check
+                    } else {
+                        System.out.println("\nError. Driver doesn't exist. Add driver first.");
+                        }
+//                        Race race = new Race(dateOfRace, tempList1, tempList2);
+//                        RACE_LIST.add(race);
+//                        System.out.println(RACE_LIST.toString());
+                    }
+
+                    if(driverExists){
+                        tempList1.add(raceDriver);
+                        tempList2.add(tempPosition);
+                    }
+
+                    Race race = new Race(dateOfRace, tempList1, tempList2);
+                    RACE_LIST.add(race);
+                    System.out.println(RACE_LIST.toString());
+                    break;
+
+                case 2:
+                    return;
+            }
+
+        }
+
+//        if(DRIVER_LIST.size() >= numOfDrivers){
+//            for(int i = 1; i <= numOfDrivers; i++){
+//                System.out.println("\n Name of driver: ");
+//                String tempName = userInput.next();
+//
+//                System.out.println("\n Team of driver: ");
+//                String tempTeam = userInput.next();
+//
+//                System.out.println("\n Position of driver: ");
+//                int tempPosition = userInput.nextInt();
+//
+//                for (int j = 0; j < DRIVER_LIST.size(); j++){
+//                    if (DRIVER_LIST.get(j).getName().equalsIgnoreCase(tempName) && DRIVER_LIST.get(j).getTeam().equalsIgnoreCase(tempTeam)){
+//                        tempList1.add(DRIVER_LIST.get(j));
+//                        tempList2.add(tempPosition);
+//                        break; //////////// check
+//                    } else {
+//                        System.out.println("\nError. Driver doesn't exist. Add driver first.");
+//                    }
+//                }
+
+//                for (Formula1Driver raceDriver : DRIVER_LIST){
+//                    if (raceDriver.getName().equalsIgnoreCase(tempName) && raceDriver.getTeam().equalsIgnoreCase(tempTeam)){
+//                        tempList1.add(raceDriver);
+//                        tempList2.add(tempPosition);
+//                        continue; //////////// check
+//                    } else {
+//                        System.out.println("\nError. Driver doesn't exist. Add driver first.");
+//                    }
+//                }
+//            }
+//        } else {
+//            System.out.println("Error. No. of drivers in championship is less that input.");
+//        }
+//        for(int i = 1; i <= numOfDrivers; i++){
+//            System.out.println("\n Name of driver: ");
+//            String tempName = userInput.next();
+//
+//            System.out.println("\n Team of driver: ");
+//            String tempTeam = userInput.next();
+//
+//            System.out.println("\n Position of driver: ");
+//            int tempPosition = userInput.nextInt();
+//
+//            for (Formula1Driver raceDriver : DRIVER_LIST){
+//                if (raceDriver.getName().equalsIgnoreCase(tempName) && raceDriver.getTeam().equalsIgnoreCase(tempTeam)){
+//                    tempList1.add(raceDriver);
+//                    tempList2.add(tempPosition);
+//                    break; //////////// check
+//                } else {
+//                    System.out.println("\nError. Driver doesn't exist. Add driver first.");
+//                }
+//            }
+//        }
+
+//        Race race = new Race(dateOfRace, tempList1, tempList2);
+//        RACE_LIST.add(race);
+//        championshipManager.addRace();
+
+
+
+//        if(race instanceof Race){
+//            RACE_LIST.add(race);
+//            System.out.println("\nRace added successfully!");
+//        } else {
+//            System.out.println("\nError. Invalid race details.");
+//            return;
+//        }
+    }
+
+    /**
+     *
+     * @param date date object
+     */
+    @Override
+    public void updateRaceDetails(Date date) {
+
+        Scanner userInput = new Scanner(System.in);
+
+        if(RACE_LIST.isEmpty()){
+            System.out.println("\n Race list is empty. Add a race first.");
+            return;
+        }
+
+        if(date instanceof Date){
+            int i = 1;
+            for(Race race : RACE_LIST){
+                System.out.println("\nRace No." + i + " :- " + race.getDateOfRace()
+                        + "\n" + race.getDriversOfRace()
+                        + "\n" + race.getRankingsOfRace());
+                i++;
+            }
+
+            System.out.println("\n Enter race no. to update: ");
+            String choice = userInput.next();
+
+            try {
+                int index = Integer.parseInt(choice);
+                System.out.println(RACE_LIST.get(index));
+
+                int j = 0;
+                for(Formula1Driver driver : RACE_LIST.get(index).getDriversOfRace()){
+                    System.out.println("\n Would you like to update this driver? ");
+                    String yesOrNo = userInput.next();
+
+                    if(yesOrNo.equalsIgnoreCase("y")){
+                        System.out.println("\nEnter new name to update: ");
+                        String newName = userInput.next();
+
+                        System.out.println("\nEnter position to update: ");
+                        int newPosition = userInput.nextInt();
+
+                        driver.setName(newName);
+                        RACE_LIST.get(index).getRankingsOfRace().set(i, newPosition);
+
+                        updateRacePoints(RACE_LIST.get(index));
+                        DRIVER_LIST.sort(Collections.reverseOrder());
+
+//                            this.save(championshipDetailsFile);
+
+                    } else if(yesOrNo.equalsIgnoreCase("n")){
+                        continue;
+                    }
+                }
+                return;
+
+                } catch (NumberFormatException e) {
+                    System.out.println(choice + " is not a valid integer");
+                }
+            } else {
+                System.out.println("\nError. Enter a valid date.");
+        }
+    }
+
+    /**
+     *
+     * @param race race object
+     */
+    @Override
+    public void updateRacePoints(Race race) {
+        int i = 0;
+        for (Formula1Driver raceDrivers: race.driversOfRace){
+            raceDrivers.incrementRaces();
+            raceDrivers.incrementPlaces(race.rankingsOfRace.get(i));
+            i++;
+        }
+    }
+
+    /**
+     *
+     * @param name name of driver
+     * @param team team of driver
+     * @return driver object
+     */
+    @Override
+    public Formula1Driver getDriverByNameAndTeam(String name, String team) {
+
+        Formula1Driver wantedDriver = null;
+        for (Formula1Driver driver: DRIVER_LIST){
+            if (driver.getName().equalsIgnoreCase(name) && driver.getTeam().equalsIgnoreCase(team)){
+                wantedDriver = driver;
+                break;
+            } else {
+                System.out.println("\nError. Driver doesn't exist.");
+                break;
+            }
+        }
+        return wantedDriver;
+    }
+
+    /**
+     *
+     * @param fileName file name
+     */
+    @Override
+    public void read(String fileName) {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+
+            ArrayList<Formula1Driver> tempList1; // temporary arraylist for drivers
+            ArrayList<Race> tempList2; // temporary arraylist races
+
+            tempList1 = (ArrayList<Formula1Driver>) objectInputStream.readObject();
+            tempList2 = (ArrayList<Race>) objectInputStream.readObject();
+
+            DRIVER_LIST.clear();
+            RACE_LIST.clear();
+
+            DRIVER_LIST.addAll(tempList1);
+            RACE_LIST.addAll(tempList2);
+
+            fileInputStream.close();
+            objectInputStream.close();
+
+        } catch (FileNotFoundException | EOFException e) {
+            new File(file);
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     *
+     * @param fileName file name
+     */
+    @Override
+    public void write(String fileName) {
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+
+            objectOutputStream.writeObject(DRIVER_LIST);
+            objectOutputStream.writeObject(RACE_LIST);
+
+            objectOutputStream.close();
+            fileOutputStream.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
